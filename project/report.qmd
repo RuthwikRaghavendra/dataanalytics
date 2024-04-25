@@ -1,0 +1,99 @@
+---
+title: "Unveiling Population Shifts: A Look at Adolescents"
+subtitle: "A Glimpse into the Future - Overall Trend Over Time"
+author: "Ruthwik Matthiga Raghavendra" 
+date: "2024-04-25"
+format:
+  html: 
+    theme: lux 
+    backgroundcolor: hsla(50, 33%, 25%, .75);
+    toc: true
+ 
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(scales)
+library(plotly)
+# Load data and prepare joins here...
+
+# libraries
+library(tidyverse)
+library(plotly)
+# data
+unicef_indicator_2 <- read_csv("unicef_indicator_2.csv")
+unicef_metadata <- read_csv("unicef_metadata.csv")
+
+#transformations
+unicef_join <- full_join(unicef_indicator_2,unicef_metadata, by = join_by(country , time_period == year))
+unicef_join <- full_join(unicef_indicator_2,unicef_metadata , by = c("country","time_period"= "year"))
+
+unicef_join <- unicef_indicator_2 %>%
+  full_join(unicef_metadata,by = c("country","time_period"= "year")) 
+```
+
+
+
+## Brazil's Youthful Vigor: A Harmonious Demographic Symphony
+
+```{r bar-chart, fig.cap="The chart unfurls the demographic tapestry of Brazil's youth from 2010 to 2020, delineating the percentages of male and female adolescents against the total population. The alternating bars, a visual dialogue between the genders, suggest a steady, balanced narrative of growth and representation over time. While stability in the adolescent segment hints at a consistent societal structure, each bar invites further scrutiny into the socioeconomic currents that influence these patterns. This chart is not merely a display of numbers but a reflection of Brazil's vibrant young population, a foundational element provides a baseline for our broader global exploration."}
+
+#Bar chart
+
+filtered_data <- unicef_join %>%
+  filter(country == "Brazil", time_period >= 2010, time_period <= 2020)
+
+ggplot(filtered_data, aes(x = time_period, y = obs_value, fill = sex)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
+  labs(x = "Time Period", y = "% of Adolescents", title = "Bar Chart of % Adolescents for Brazil") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+ 
+## The Global Canvas: Pinpoints of Change
+
+```{r scatter plot, fig.cap="As the narrative expands, we step onto the global canvas, where each dot on the scatterplot becomes a pin in the map of humanity. The comparison is striking—while Brazil's youth population moves in a measured, steady rhythm, the global scene is a dynamic constellation, each point signaling a story of its own."}
+# Scatter plot
+filtered_data <- unicef_join %>%
+  filter( time_period >= 2010, time_period <= 2020)
+
+top_TotalPopulation <- filtered_data %>%
+  group_by(`Total Population`, sex,time_period ) %>%
+  summarise(max_value = max('Total Population', na.rm = TRUE)) %>%
+  top_n(45000000, max_value) %>%
+  ungroup() %>%
+  arrange(desc(max_value))
+
+ggplot(top_TotalPopulation, aes(x = time_period, y = `Total Population`)) +
+  geom_point(aes(size = max_value, color = sex), alpha = 0.6) +  # Assuming max_value is what you want to size your points by
+  geom_smooth(method = "lm", color = "PURPLE") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) +
+  labs(title = "Population Over Time Periods",
+       x = "Time Period",
+       y = "Total Population") +
+  theme_minimal()
+```
+
+
+## Time's Melody: A Worldwide Rhythmic Flux
+
+```{r Time series, fig.cap="In the time series graph, we witness the ebb and flow of the world's adolescents over decades. The tempo of change across the globe beats in sync with Brazil's trends but magnified, reflecting the universal beats of economic, social, and cultural shifts."}
+#Time series
+ggplot(unicef_join, aes(x = time_period, y = obs_value)) +
+  geom_line() +
+  labs(x = "Year", y = "% Adolscents", title = "Time Series of % Adolscents")
+
+```
+
+## Conclusion: Echoes of Adolescence: From Local Shores to Global Horizons
+
+
+Our voyage through time and data concludes with a profound appreciation for the echoes of adolescence that reverberate from the local to the global. Brazil's narrative is a microcosm, a single melody within a grander composition of worldwide youth demographics. It's a reminder that, while each nation dances to its own rhythm, together they compose a symphony of continuous, collective progression.
+
